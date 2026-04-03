@@ -2,8 +2,8 @@ package com.toba.toba.mapper;
 
 import java.util.List;
 
-import com.toba.toba.dto.ProjectRequestDto;
-import com.toba.toba.dto.ProjectResponseDto;
+import com.toba.toba.dto.projectDtos.ProjectRequestDto;
+import com.toba.toba.dto.projectDtos.ProjectResponseDto;
 import com.toba.toba.entities.Project;
 import com.toba.toba.entities.Ticket;
 

@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.toba.toba.dto.TeamRequestDto;
-import com.toba.toba.dto.TeamResponseDto;
+import com.toba.toba.dto.teamDtos.TeamRequestDto;
+import com.toba.toba.dto.teamDtos.TeamResponseDto;
 import com.toba.toba.service.TeamService;
 
 import lombok.RequiredArgsConstructor;

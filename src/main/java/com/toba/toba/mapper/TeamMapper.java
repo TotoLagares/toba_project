@@ -2,8 +2,8 @@ package com.toba.toba.mapper;
 
 import java.util.List;
 
-import com.toba.toba.dto.TeamRequestDto;
-import com.toba.toba.dto.TeamResponseDto;
+import com.toba.toba.dto.teamDtos.TeamRequestDto;
+import com.toba.toba.dto.teamDtos.TeamResponseDto;
 import com.toba.toba.entities.Team;
 import com.toba.toba.entities.User;
 

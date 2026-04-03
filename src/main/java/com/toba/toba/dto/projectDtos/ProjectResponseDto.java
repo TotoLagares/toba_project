@@ -1,4 +1,4 @@
-package com.toba.toba.dto;
+package com.toba.toba.dto.projectDtos;
 
 import java.time.LocalDateTime;
 import java.util.List;

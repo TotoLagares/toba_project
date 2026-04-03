@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.toba.toba.dto.ProjectRequestDto;
-import com.toba.toba.dto.ProjectResponseDto;
+import com.toba.toba.dto.projectDtos.ProjectRequestDto;
+import com.toba.toba.dto.projectDtos.ProjectResponseDto;
 import com.toba.toba.entities.Project;
 import com.toba.toba.exception.ResourceNotFoundException;
 import com.toba.toba.mapper.ProjectMapper;

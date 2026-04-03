@@ -1,12 +1,13 @@
-package com.toba.toba.dto;
+package com.toba.toba.dto.ticketDos;
 
 import com.toba.toba.entities.enums.PriorityEnum;
 import com.toba.toba.entities.enums.TicketState;
 
-public record TicketResponseDto(
-		Long id,
+import java.util.List;
+
+public record TicketRequestDto(
 		String topic,
 		PriorityEnum priority,
-		TicketState state,
+		TicketState currentState,
 		Long projectId) {
 }

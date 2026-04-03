@@ -1,9 +1,9 @@
 package com.toba.toba.mapper;
 
-import com.toba.toba.dto.UserRequestDto;
-import com.toba.toba.dto.UserResponseDto;
-import com.toba.toba.dto.UserResponseDto.AdressResponse;
-import com.toba.toba.dto.UserResponseDto.CredentialsResponse;
+import com.toba.toba.dto.userDtos.UserRequestDto;
+import com.toba.toba.dto.userDtos.UserResponseDto;
+import com.toba.toba.dto.userDtos.UserResponseDto.AdressResponse;
+import com.toba.toba.dto.userDtos.UserResponseDto.CredentialsResponse;
 import com.toba.toba.entities.Adress;
 import com.toba.toba.entities.Credentials;
 import com.toba.toba.entities.Team;

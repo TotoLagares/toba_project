@@ -2,8 +2,8 @@ package com.toba.toba.service;
 
 import java.util.List;
 
-import com.toba.toba.dto.UserRequestDto;
-import com.toba.toba.dto.UserResponseDto;
+import com.toba.toba.dto.userDtos.UserRequestDto;
+import com.toba.toba.dto.userDtos.UserResponseDto;
 
 public interface UserService {
 

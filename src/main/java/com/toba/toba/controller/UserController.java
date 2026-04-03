@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.toba.toba.dto.UserRequestDto;
-import com.toba.toba.dto.UserResponseDto;
+import com.toba.toba.dto.userDtos.UserRequestDto;
+import com.toba.toba.dto.userDtos.UserResponseDto;
 import com.toba.toba.service.UserService;
 
 import lombok.RequiredArgsConstructor;

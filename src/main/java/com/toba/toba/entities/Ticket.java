@@ -43,7 +43,7 @@ public class Ticket {
 	private PriorityEnum priority;
 
 	@Enumerated(EnumType.STRING)
-	private TicketState state;
+	private TicketState currentState;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "project_id")

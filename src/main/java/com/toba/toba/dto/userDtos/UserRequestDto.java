@@ -1,4 +1,4 @@
-package com.toba.toba.dto;
+package com.toba.toba.dto.userDtos;
 
 import java.time.LocalDateTime;
 

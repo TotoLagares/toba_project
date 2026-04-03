@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.toba.toba.dto.UserRequestDto;
-import com.toba.toba.dto.UserResponseDto;
+import com.toba.toba.dto.userDtos.UserRequestDto;
+import com.toba.toba.dto.userDtos.UserResponseDto;
 import com.toba.toba.entities.Adress;
 import com.toba.toba.entities.Credentials;
 import com.toba.toba.entities.Team;

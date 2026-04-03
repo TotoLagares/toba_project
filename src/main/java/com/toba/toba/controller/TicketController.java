@@ -2,6 +2,8 @@ package com.toba.toba.controller;
 
 import java.util.List;
 
+import com.toba.toba.dto.ticketStageDtos.TicketStageRequestDto;
+import com.toba.toba.dto.ticketStageDtos.TicketStageResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.toba.toba.dto.TicketRequestDto;
-import com.toba.toba.dto.TicketResponseDto;
+import com.toba.toba.dto.ticketDos.TicketRequestDto;
+import com.toba.toba.dto.ticketDos.TicketResponseDto;
 import com.toba.toba.service.TicketService;
 
 import lombok.RequiredArgsConstructor;
@@ -51,5 +53,11 @@ public class TicketController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable Long id) {
 		ticketService.deleteById(id);
+	}
+
+	@PostMapping("/stages")
+	@ResponseStatus(HttpStatus.CREATED)
+	public TicketStageResponseDto createStage (@RequestBody TicketStageRequestDto dto){
+		return ticketService.addStage(dto);
 	}
 }

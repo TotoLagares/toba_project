@@ -15,11 +15,17 @@ public final class TeamMapper {
 	public static TeamResponseDto toResponseDto(Team team) {
 		List<Long> memberIds = team.getTeamMembers() == null ? List.of()
 				: team.getTeamMembers().stream().map(User::getId).toList();
-		return new TeamResponseDto(team.getId(), team.getTeamType(), memberIds);
+		return new TeamResponseDto(
+                team.getId(),
+                team.getName(),
+                team.getTeamType(),
+                memberIds
+        );
 	}
 
 	public static Team toEntity(TeamRequestDto dto) {
 		return Team.builder()
+                .name(dto.name())
 				.teamType(dto.teamType())
 				.build();
 	}

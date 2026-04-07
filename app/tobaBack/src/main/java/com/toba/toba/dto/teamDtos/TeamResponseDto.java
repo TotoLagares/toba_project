@@ -6,6 +6,7 @@ import com.toba.toba.entities.enums.TeamType;
 
 public record TeamResponseDto(
 		Long id,
+        String name,
 		TeamType teamType,
 		List<Long> memberIds) {
 }

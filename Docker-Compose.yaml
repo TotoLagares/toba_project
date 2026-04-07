@@ -1,0 +1,44 @@
+services:
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: tobaproject
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./app/tobaBack
+    ports:
+      - "${APP_PORT}:8080"
+    environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      APP_PORT: ${APP_PORT}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+  frontend:
+    build: ./app/tobaFront
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_started
+      db:
+        condition: service_healthy
+volumes:
+  mysql_data:

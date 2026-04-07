@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Toba — Tickets</title>
+    <!-- Orden estándar: variables → base → componentes -->
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <!-- ========== VISTA: LOGIN ========== -->
+    <div id="view-login" class="view login-wrap" data-view="login">
+      <div class="card login-card">
+        <h1 class="logo">to<span>ba</span></h1>
+        <p id="login-error" class="login-error" aria-live="polite"></p>
+        <form id="form-login" novalidate>
+          <div class="field">
+            <label for="login-user">Usuario</label>
+            <input
+              id="login-user"
+              name="user"
+              type="text"
+              autocomplete="username"
+              required
+            />
+          </div>
+          <div class="field">
+            <label for="login-pass">Contraseña</label>
+            <input
+              id="login-pass"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            Ingresar
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========== SHELL: topbar + área principal (post-login) ========== -->
+    <div id="shell" class="hidden">
+      <header class="topbar" id="topbar">
+        <div class="topbar__brand">
+          <button type="button" class="logo btn-ghost" id="nav-home" aria-label="Ir al tablero">
+            to<span>ba</span>
+          </button>
+          <div
+            class="project-badge hidden"
+            id="project-badge-wrap"
+            aria-label="Proyecto activo"
+          >
+            Proyecto
+            <select id="select-project" aria-label="Cambiar proyecto activo"></select>
+          </div>
+        </div>
+        <nav class="topbar__nav" aria-label="Principal">
+          <button type="button" class="btn btn-nav" data-nav="board" id="nav-board">
+            Tablero
+          </button>
+          <button type="button" class="btn btn-nav" data-nav="projects" id="nav-projects">
+            Proyectos
+          </button>
+          <button type="button" class="btn btn-nav" data-nav="teams" id="nav-teams">
+            Equipos
+          </button>
+        </nav>
+        <div class="topbar__actions">
+          <div class="user-chip" id="user-chip">
+            <span class="avatar sm" id="user-avatar">?</span>
+            <span id="user-name">—</span>
+          </div>
+          <button type="button" class="btn btn-primary hidden" id="btn-new-ticket">
+            + Nuevo ticket
+          </button>
+          <button type="button" class="btn" id="btn-logout">Salir</button>
+        </div>
+      </header>
+
+      <main id="main">
+        <!-- ========== VISTA: KANBAN ========== -->
+        <section id="view-board" class="view subview" data-view="board">
+          <div class="kanban" id="kanban-root" aria-label="Tablero Kanban"></div>
+        </section>
+
+        <!-- ========== VISTA: DETALLE TICKET ========== -->
+        <section id="view-detail" class="view subview hidden" data-view="detail">
+          <div class="page-actions">
+            <button type="button" class="btn" id="btn-back-board">← Volver</button>
+          </div>
+          <div class="detail-layout">
+            <div>
+              <div class="breadcrumb" id="detail-breadcrumb"></div>
+              <h1 class="detail-title" id="detail-topic"></h1>
+              <div class="comment-box comment-box--first">
+                <div class="field">
+                  <label for="detail-comment">Mensaje obligatorio para cambiar de estado</label>
+                  <textarea id="detail-comment" rows="4" placeholder="Escribí el mensaje del cambio y elegí el nuevo estado debajo…"></textarea>
+                </div>
+                <p id="detail-transition-error" class="field-error hidden" aria-live="polite"></p>
+              </div>
+              <div class="state-row" id="detail-states" role="group" aria-label="Nuevo estado (requiere mensaje)"></div>
+              <ul class="timeline" id="detail-timeline"></ul>
+            </div>
+            <aside class="card sidebar-panel" id="detail-sidebar"></aside>
+          </div>
+        </section>
+
+        <!-- ========== VISTA: PROYECTOS ========== -->
+        <section id="view-projects" class="view subview hidden" data-view="projects">
+          <div class="page-heading">
+            <h2>Proyectos</h2>
+            <p>Métricas globales y listado de proyectos.</p>
+          </div>
+          <div class="metrics" id="projects-metrics"></div>
+          <div class="page-actions">
+            <button type="button" class="btn btn-primary" id="btn-new-project">
+              + Nuevo proyecto
+            </button>
+          </div>
+          <div class="project-list" id="projects-list"></div>
+        </section>
+
+        <!-- ========== VISTA: EQUIPOS ========== -->
+        <section id="view-teams" class="view subview hidden" data-view="teams">
+          <div class="page-heading">
+            <h2>Equipos</h2>
+            <p>Miembros y proyectos asignados por equipo.</p>
+          </div>
+          <div class="teams-page" id="teams-root"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ========== MODAL: nuevo ticket ========== -->
+    <div id="modal-ticket-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-ticket-title">
+      <div class="card modal" id="modal-ticket">
+        <h2 id="modal-ticket-title">Nuevo ticket</h2>
+        <form id="form-new-ticket">
+          <div class="field">
+            <label for="nt-topic">Tema</label>
+            <input id="nt-topic" name="topic" required />
+          </div>
+          <div class="field">
+            <label for="nt-priority">Prioridad</label>
+            <select id="nt-priority" name="priority" required>
+              <option value="TRIVIAL">TRIVIAL</option>
+              <option value="BLOCKER">BLOCKER</option>
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM" selected>MEDIUM</option>
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="HIGH">HIGH</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="nt-state">Estado inicial</label>
+            <select id="nt-state" name="state" required></select>
+          </div>
+          <div class="field">
+            <label for="nt-project">Proyecto</label>
+            <select id="nt-project" name="projectId" required></select>
+          </div>
+          <div class="field">
+            <label for="nt-msg">Mensaje del primer stage</label>
+            <textarea id="nt-msg" name="msg" rows="3" placeholder="Descripción inicial del ticket…" required></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn" id="nt-cancel">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Crear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========== MODAL: nuevo proyecto ========== -->
+    <div id="modal-project-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-project-title">
+      <div class="card modal" id="modal-project">
+        <h2 id="modal-project-title">Nuevo proyecto</h2>
+        <form id="form-new-project">
+          <div class="field">
+            <label for="np-name">Nombre</label>
+            <input id="np-name" name="name" required />
+          </div>
+          <div class="field">
+            <label for="np-desc">Descripción</label>
+            <textarea id="np-desc" name="description" rows="3"></textarea>
+          </div>
+          <div class="field">
+            <label for="np-status">Estado</label>
+            <select id="np-status" name="status" required>
+              <option value="ACTIVE" selected>ACTIVE</option>
+              <option value="ARCHIVED">ARCHIVED</option>
+              <option value="ON_HOLD">ON_HOLD</option>
+              <option value="ENDED">ENDED</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Equipos asignados</label>
+            <div class="check-list" id="np-teams"></div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn" id="np-cancel">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Crear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Orden estándar: datos → estado → aplicación -->
+    <script src="js/data.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

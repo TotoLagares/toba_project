@@ -1,0 +1,31 @@
+/* Paleta Toba — flat, sin sombras ni gradientes */
+:root {
+  --bg-main: #0f0f10;
+  --surface: #17171a;
+  --surface-inner: #1e1e24;
+  --border: #2a2a2e;
+  --accent: #534ab7;
+  --text: #e8e8ec;
+  --text-secondary: #888;
+  --text-muted: #555;
+
+  --pri-high-fg: #f09595;
+  --pri-high-bg: #2a1010;
+  --pri-mid-fg: #fac775;
+  --pri-mid-bg: #2a200e;
+  --pri-low-fg: #97c459;
+  --pri-low-bg: #131f10;
+
+  --state-done: #97c459;
+  --state-progress: #afa9ec;
+  --state-review: #fac775;
+  --state-blocked: #f09595;
+  --state-todo: #555;
+
+  --proj-active: #97c459;
+  --proj-planned: #a78fff;
+  --proj-hold: #fac775;
+
+  --radius: 6px;
+  --font: system-ui, "Segoe UI", Roboto, Ubuntu, sans-serif;
+}

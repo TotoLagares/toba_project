@@ -17,8 +17,8 @@ public final class UserMapper {
 	public static UserResponseDto toResponseDto(User user) {
 		Long teamId = user.getTeam() != null ? user.getTeam().getId() : null;
 		AdressResponse adressResponse = null;
-		if (user.getAdress() != null) {
-			Adress a = user.getAdress();
+		if (user.getAddress() != null) {
+			Adress a = user.getAddress();
 			adressResponse = new AdressResponse(a.getId(), a.getStreet(), a.getZipCode(), a.getHouseNumber());
 		}
 		CredentialsResponse credentialsResponse = null;
@@ -38,12 +38,12 @@ public final class UserMapper {
 	}
 
 	public static User toEntity(UserRequestDto dto, Team team) {
-		Adress adress = null;
-		if (dto.adress() != null) {
-			adress = Adress.builder()
-					.street(dto.adress().street())
-					.zipCode(dto.adress().zipCode())
-					.houseNumber(dto.adress().houseNumber())
+		Adress address = null;
+		if (dto.address() != null) {
+			address = Adress.builder()
+					.street(dto.address().street())
+					.zipCode(dto.address().zipCode())
+					.houseNumber(dto.address().houseNumber())
 					.build();
 		}
 		Credentials credentials = null;
@@ -60,7 +60,7 @@ public final class UserMapper {
 				.mail(dto.mail())
 				.role(dto.role())
 				.team(team)
-				.adress(adress)
+				.address(address)
 				.credentials(credentials)
 				.build();
 	}

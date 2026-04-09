@@ -11,5 +11,6 @@ public record ProjectResponseDto(
 		String description,
 		LocalDateTime startDate,
 		ProjectStatus status,
+        List<Long> teamIds,
 		List<Long> ticketIds) {
 }

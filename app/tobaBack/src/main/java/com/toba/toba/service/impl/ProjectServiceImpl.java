@@ -2,6 +2,10 @@ package com.toba.toba.service.impl;
 
 import java.util.List;
 
+import com.toba.toba.entities.Team;
+import com.toba.toba.entities.TeamProject;
+import com.toba.toba.repository.TeamProjectRepository;
+import com.toba.toba.repository.TeamRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 public class ProjectServiceImpl implements ProjectService {
 
 	private final ProjectRepository projectRepository;
+    private final TeamRepository teamRepository;
+    private final TeamProjectRepository teamProjectRepository;
 
 	@Override
 	public List<ProjectResponseDto> findAll() {
@@ -35,11 +41,28 @@ public class ProjectServiceImpl implements ProjectService {
 	}
 
 	@Override
-	@Transactional
-	public ProjectResponseDto save(ProjectRequestDto dto) {
-		Project saved = projectRepository.save(ProjectMapper.toEntity(dto));
-		return ProjectMapper.toResponseDto(saved);
-	}
+    @Transactional
+    public ProjectResponseDto save(ProjectRequestDto dto) {
+        Project project = ProjectMapper.toEntity(dto);
+        projectRepository.save(project);
+        // Chequeo que los TeamsIds que se ingresaron existan y si existen creo un TeamProject con esos datos.
+        if (dto.teamIds() != null) {
+            for (Long teamId : dto.teamIds()) {
+                Team team = teamRepository.findById(teamId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Team", teamId));
+
+                // Guardo el proyecto y el team en TeamProyect
+                TeamProject tp = TeamProject.builder()
+                        .project(project)
+                        .team(team)
+                        .build();
+                // Guardo el TeamProject en su repostorio
+                teamProjectRepository.save(tp);
+            }
+        }
+
+        return ProjectMapper.toResponseDto(projectRepository.findById(project.getId()).get());
+    }
 
 	@Override
 	@Transactional

@@ -48,7 +48,7 @@ public class User {
 
 	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "adress_id")
-	private Adress adress;
+	private Adress address;
 
 	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "credentials_id")

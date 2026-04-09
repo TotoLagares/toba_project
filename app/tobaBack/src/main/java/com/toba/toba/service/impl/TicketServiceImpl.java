@@ -110,5 +110,13 @@ public class TicketServiceImpl implements TicketService {
 		ticketRepository.save(ticket);
 
 		return TicketStageMapper.toResponseDto(ticketStage);
+
 	}
+    @Override
+    @Transactional
+    public TicketStageResponseDto findStageById(Long id) {
+        return ticketStageRepository.findById(id)
+                .map(TicketStageMapper::toResponseDto)
+                .orElseThrow(() -> new ResourceNotFoundException("TicketStage", id));
+    }
 }

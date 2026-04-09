@@ -20,4 +20,6 @@ public interface TicketService {
 	void deleteById(Long id);
 
 	TicketStageResponseDto addStage(TicketStageRequestDto dto);
+
+    TicketStageResponseDto findStageById(Long id);
 }

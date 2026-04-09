@@ -5,6 +5,7 @@ import java.util.List;
 import com.toba.toba.dto.projectDtos.ProjectRequestDto;
 import com.toba.toba.dto.projectDtos.ProjectResponseDto;
 import com.toba.toba.entities.Project;
+import com.toba.toba.entities.TeamProject;
 import com.toba.toba.entities.Ticket;
 
 public final class ProjectMapper {
@@ -15,12 +16,15 @@ public final class ProjectMapper {
 	public static ProjectResponseDto toResponseDto(Project project) {
 		List<Long> ticketIds = project.getAllTickets() == null ? List.of()
 				: project.getAllTickets().stream().map(Ticket::getId).toList();
+        List<Long> teamIds = project.getTeamProjects() == null ? List.of()
+                : project.getTeamProjects().stream().map(tp -> tp.getTeam().getId()).toList();
 		return new ProjectResponseDto(
 				project.getId(),
 				project.getName(),
 				project.getDescription(),
 				project.getStartDate(),
 				project.getStatus(),
+                teamIds,
 				ticketIds);
 	}
 

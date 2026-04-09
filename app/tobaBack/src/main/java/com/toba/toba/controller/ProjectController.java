@@ -2,6 +2,7 @@ package com.toba.toba.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,12 +39,12 @@ public class ProjectController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public ProjectResponseDto create(@RequestBody ProjectRequestDto dto) {
+	public ProjectResponseDto create(@RequestBody @Valid ProjectRequestDto dto) {
 		return projectService.save(dto);
 	}
 
 	@PutMapping("/{id}")
-	public ProjectResponseDto update(@PathVariable Long id, @RequestBody ProjectRequestDto dto) {
+	public ProjectResponseDto update(@PathVariable Long id, @Valid @RequestBody ProjectRequestDto dto) {
 		return projectService.update(id, dto);
 	}
 

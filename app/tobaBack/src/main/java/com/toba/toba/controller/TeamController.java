@@ -2,6 +2,7 @@ package com.toba.toba.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,9 +28,7 @@ public class TeamController {
 	private final TeamService teamService;
 
 	@GetMapping
-	public List<TeamResponseDto> getAll() {
-		return teamService.findAll();
-	}
+	public List<TeamResponseDto> getAll() {return teamService.findAll();}
 
 	@GetMapping("/{id}")
 	public TeamResponseDto getById(@PathVariable Long id) {
@@ -38,12 +37,10 @@ public class TeamController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public TeamResponseDto create(@RequestBody TeamRequestDto dto) {
-		return teamService.save(dto);
-	}
+	public TeamResponseDto create(@Valid @RequestBody TeamRequestDto dto) {return teamService.save(dto);}
 
 	@PutMapping("/{id}")
-	public TeamResponseDto update(@PathVariable Long id, @RequestBody TeamRequestDto dto) {
+	public TeamResponseDto update(@PathVariable Long id, @Valid @RequestBody TeamRequestDto dto) {
 		return teamService.update(id, dto);
 	}
 

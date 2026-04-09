@@ -11,7 +11,7 @@ public record UserResponseDto(
 		String mail,
 		RoleEnum role,
 		Long teamId,
-		AdressResponse adress,
+		AdressResponse address,
 		CredentialsResponse credentials) {
 
 	public record AdressResponse(

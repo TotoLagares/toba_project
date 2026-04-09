@@ -2,7 +2,9 @@ package com.toba.toba.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,12 +40,12 @@ public class UserController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public UserResponseDto create(@RequestBody UserRequestDto dto) {
+	public UserResponseDto create(@RequestBody @Valid UserRequestDto dto) {
 		return userService.save(dto);
 	}
 
 	@PutMapping("/{id}")
-	public UserResponseDto update(@PathVariable Long id, @RequestBody UserRequestDto dto) {
+	public UserResponseDto update(@PathVariable Long id, @Valid @Validated @RequestBody UserRequestDto dto) {
 		return userService.update(id, dto);
 	}
 

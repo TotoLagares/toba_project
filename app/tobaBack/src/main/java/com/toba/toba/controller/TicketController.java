@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.toba.toba.dto.ticketStageDtos.TicketStageRequestDto;
 import com.toba.toba.dto.ticketStageDtos.TicketStageResponseDto;
+import com.toba.toba.repository.TicketStageRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,12 +42,12 @@ public class TicketController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public TicketResponseDto create(@RequestBody TicketRequestDto dto) {
+	public TicketResponseDto create(@Valid @RequestBody TicketRequestDto dto) {
 		return ticketService.save(dto);
 	}
 
 	@PutMapping("/{id}")
-	public TicketResponseDto update(@PathVariable Long id, @RequestBody TicketRequestDto dto) {
+	public TicketResponseDto update(@PathVariable Long id,@Valid @RequestBody TicketRequestDto dto) {
 		return ticketService.update(id, dto);
 	}
 
@@ -57,7 +59,11 @@ public class TicketController {
 
 	@PostMapping("/stages")
 	@ResponseStatus(HttpStatus.CREATED)
-	public TicketStageResponseDto createStage (@RequestBody TicketStageRequestDto dto){
+	public TicketStageResponseDto createStage (@Valid @RequestBody TicketStageRequestDto dto){
 		return ticketService.addStage(dto);
 	}
+
+    @GetMapping("/stages/{id}")
+    public TicketStageResponseDto getStage(@PathVariable Long id){return ticketService.findStageById(id);}
+
 }

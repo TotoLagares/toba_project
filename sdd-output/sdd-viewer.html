@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SDD Viewer — Toba</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-elev: #161922;
+    --bg-soft: #1c2030;
+    --border: #262a38;
+    --text: #e6e8ee;
+    --text-dim: #9aa0b4;
+    --accent: #7c8cff;
+    --accent-soft: #2a2f4a;
+    --inferred: #4ea1ff;
+    --assumption: #ffb84d;
+    --confirmed: #4ade80;
+    --todo: #f87171;
+    --code-bg: #0a0c12;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+  body { display: grid; grid-template-rows: auto 1fr; }
+
+  header {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+  header h1 .project { color: var(--accent); }
+  header .meta { font-size: 12px; color: var(--text-dim); }
+
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); border-color: var(--accent-soft); }
+  .tab.active { background: var(--accent-soft); color: var(--text); border-color: var(--accent); }
+
+  main { display: grid; grid-template-columns: 280px 1fr; height: 100%; overflow: hidden; }
+
+  aside {
+    background: var(--bg-elev);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px 8px;
+  }
+  aside h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 12px 12px 8px;
+    font-weight: 600;
+  }
+  .toc { list-style: none; padding: 0; margin: 0; }
+  .toc li { margin: 0; }
+  .toc a {
+    display: block;
+    padding: 5px 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    transition: all 0.1s;
+  }
+  .toc a:hover { color: var(--text); background: var(--bg-soft); }
+  .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--bg-soft); }
+  .toc .level-3 { padding-left: 24px; font-size: 12px; }
+  .toc .level-4 { padding-left: 36px; font-size: 12px; color: var(--text-dim); opacity: 0.7; }
+
+  .content {
+    overflow-y: auto;
+    padding: 32px 48px 80px;
+    max-width: 100%;
+  }
+  .content-inner { max-width: 820px; margin: 0 auto; }
+
+  .pane { display: none; }
+  .pane.active { display: block; }
+
+  /* Markdown styles */
+  .content h1 { font-size: 28px; margin: 0 0 8px; font-weight: 700; }
+  .content h2 { font-size: 22px; margin: 36px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-weight: 600; }
+  .content h3 { font-size: 17px; margin: 28px 0 10px; font-weight: 600; }
+  .content h4 { font-size: 14px; margin: 20px 0 8px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .content p { line-height: 1.65; margin: 10px 0; color: var(--text); }
+  .content ul, .content ol { line-height: 1.65; padding-left: 22px; }
+  .content li { margin: 4px 0; }
+  .content a { color: var(--accent); }
+  .content blockquote {
+    border-left: 3px solid var(--accent);
+    background: var(--bg-soft);
+    padding: 10px 16px;
+    margin: 16px 0;
+    color: var(--text-dim);
+    border-radius: 0 6px 6px 0;
+  }
+  .content code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+  }
+  .content pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 14px 0;
+  }
+  .content pre code { background: none; border: none; padding: 0; font-size: 13px; }
+
+  .content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .content th, .content td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .content th { background: var(--bg-soft); font-weight: 600; }
+  .content tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+
+  .content hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  /* Markers */
+  .marker {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 0.78em;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    margin-right: 4px;
+    vertical-align: baseline;
+  }
+  .marker-inferred { background: rgba(78, 161, 255, 0.15); color: var(--inferred); border: 1px solid rgba(78, 161, 255, 0.3); }
+  .marker-assumption { background: rgba(255, 184, 77, 0.15); color: var(--assumption); border: 1px solid rgba(255, 184, 77, 0.3); }
+  .marker-confirmed { background: rgba(74, 222, 128, 0.15); color: var(--confirmed); border: 1px solid rgba(74, 222, 128, 0.3); }
+  .marker-todo { background: rgba(248, 113, 113, 0.15); color: var(--todo); border: 1px solid rgba(248, 113, 113, 0.3); }
+
+  /* Mermaid */
+  .mermaid {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    text-align: center;
+  }
+
+  /* Filter chip toolbar */
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chip {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: var(--bg-soft);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+  }
+  .chip strong { color: var(--text); margin-left: 4px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent-soft); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SDD · <span class="project">Toba</span></h1>
+  <div class="tabs">
+    <button class="tab active" data-pane="functional">Funcional</button>
+    <button class="tab" data-pane="technical">Técnica</button>
+  </div>
+  <div class="meta">2026-05-04</div>
+</header>
+
+<main>
+  <aside>
+    <h3>Tabla de contenidos</h3>
+    <ul class="toc" id="toc"></ul>
+  </aside>
+
+  <div class="content">
+    <div class="content-inner">
+      <div class="toolbar" id="toolbar"></div>
+      <div class="pane active" id="pane-functional"></div>
+      <div class="pane" id="pane-technical"></div>
+    </div>
+  </div>
+</main>
+
+<script id="md-functional" type="text/markdown">
+# Spec Funcional — Toba
+
+> **Audiencia:** PMs, stakeholders, nuevos integrantes del equipo, anyone que necesite entender QUÉ hace este sistema y POR QUÉ.
+> **Generada:** 2026-05-04 via reverse-SDD
+> **Leyenda:** `[INFERRED]` deducido del código · `[ASSUMPTION]` asunción a validar · `[CONFIRMED]` confirmado por el usuario · `[POR HACER]` pendiente de implementación
+
+---
+
+## 1. Propósito
+
+[INFERRED] Toba es una herramienta interna de gestión de proyectos de software estilo kanban. Permite a equipos de desarrollo registrar proyectos, organizar tickets de trabajo por estado, y llevar un historial auditado de cambios con comentarios obligatorios. Está orientada a equipos técnicos pequeños y medianos.
+
+## 2. Usuarios y actores
+
+- **Project Manager** — crea y administra proyectos, asigna equipos, tiene visibilidad de todos los proyectos de su equipo.
+- **Miembro de equipo** (Dev, QA, BA, Team Leader, etc.) — visualiza y gestiona tickets de los proyectos de su equipo, registra avances y transiciones de estado.
+- **Sistema (futuro)** — [POR HACER] un módulo de autenticación JWT que valide credenciales en el backend antes de dar acceso.
+
+## 3. Casos de uso principales
+
+### CU-01: Login
+
+**Quién:** cualquier usuario registrado
+**Qué:** acceder al sistema con credenciales de usuario (userField + contraseña)
+
+**Flujo:**
+1. Usuario ingresa userField y contraseña en el formulario de login.
+2. Sistema verifica las credenciales.
+3. Si son correctas, redirige al tablero kanban; si no, muestra mensaje de error.
+
+**Nota:** [CONFIRMED] actualmente la verificación ocurre solo en el frontend con datos mock. [POR HACER] reemplazar con llamada al backend y JWT.
+
+**Reglas asociadas:** RN-07
+
+---
+
+### CU-02: Ver tablero Kanban
+
+**Quién:** usuario autenticado
+**Qué:** visualizar tickets del proyecto seleccionado organizados por columnas de estado
+
+**Flujo:**
+1. Usuario selecciona un proyecto desde el dropdown (solo ve proyectos de su equipo).
+2. Sistema muestra cuatro columnas: OPEN / IN_PROGRESS / RESOLVED / CLOSED.
+3. Cada columna muestra tarjetas con topic, prioridad, ID (TBA-{n}) y avatar del último actor.
+
+**Reglas asociadas:** RN-01, RN-02
+
+---
+
+### CU-03: Crear ticket
+
+**Quién:** usuario autenticado con acceso a al menos un proyecto
+**Qué:** registrar un nuevo ticket en un proyecto de su equipo
+
+**Flujo:**
+1. Usuario abre el modal "Nuevo Ticket".
+2. Ingresa topic, prioridad, estado inicial, proyecto destino y un mensaje de apertura obligatorio.
+3. Sistema crea el ticket y registra el primer TicketStage en el historial.
+4. El tablero kanban se actualiza con la nueva tarjeta.
+
+**Reglas asociadas:** RN-03, RN-04
+
+---
+
+### CU-04: Ver detalle y transicionar estado de un ticket
+
+**Quién:** usuario autenticado con acceso al proyecto del ticket
+**Qué:** cambiar el estado de un ticket dejando un comentario obligatorio
+
+**Flujo:**
+1. Usuario hace clic en una tarjeta del tablero.
+2. Sistema muestra: topic, estado actual, historial de stages, y panel lateral con info del proyecto.
+3. Usuario escribe un comentario en el área de texto.
+4. Usuario selecciona el nuevo estado.
+5. Sistema registra el cambio como un nuevo TicketStage con mensaje, actor y fecha.
+
+**Reglas asociadas:** RN-03, RN-05
+
+---
+
+### CU-05: Crear proyecto (solo PROJECT_MANAGER)
+
+**Quién:** usuario con rol PROJECT_MANAGER
+**Qué:** registrar un nuevo proyecto y asignarle uno o más equipos
+
+**Flujo:**
+1. PM abre el modal "Nuevo Proyecto" (botón solo visible para PROJECT_MANAGER).
+2. Ingresa nombre, descripción, estado inicial y selecciona los equipos asignados.
+3. Sistema crea el proyecto con los equipos indicados.
+
+**Reglas asociadas:** RN-06
+
+---
+
+### CU-06: Ver métricas de proyectos
+
+**Quién:** usuario autenticado
+**Qué:** obtener una vista agregada del estado de proyectos y tickets visibles
+
+**Flujo:**
+1. Usuario navega a la vista "Proyectos".
+2. Sistema muestra métricas globales: total de tickets, en progreso, resueltos y cerrados.
+3. Por cada proyecto: descripción, barra de progreso, conteo por estado, equipos y miembros asignados.
+
+---
+
+### CU-07: Ver información del equipo
+
+**Quién:** usuario autenticado
+**Qué:** ver los miembros, roles y proyectos del equipo propio
+
+**Flujo:**
+1. Usuario navega a la vista "Equipos".
+2. Sistema muestra una tabla con nombre, mail y rol de cada miembro del equipo del usuario.
+
+---
+
+## 4. Reglas de negocio
+
+- **RN-01:** [INFERRED] Un usuario solo puede ver proyectos y tickets asignados al equipo al que pertenece.
+- **RN-02:** [INFERRED] Un usuario solo puede ver el equipo al que él mismo pertenece.
+- **RN-03:** [INFERRED] Para cambiar el estado de un ticket es obligatorio redactar un comentario (campo no vacío).
+- **RN-04:** [INFERRED] Un ticket debe pertenecer siempre a un proyecto existente; `projectId` no puede ser nulo.
+- **RN-05:** [INFERRED] Los estados siguen el ciclo OPEN → IN_PROGRESS → RESOLVED → CLOSED. No se validan transiciones hacia atrás pero el flujo esperado es el ascendente.
+- **RN-06:** [INFERRED] Solo un usuario con rol `PROJECT_MANAGER` puede crear nuevos proyectos.
+- **RN-07:** [ASSUMPTION] Las credenciales (userField + password) son únicas por usuario.
+
+## 5. Flujos clave
+
+### Flujo: Crear ticket y registrar cambio de estado
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario
+    participant FE as Frontend SPA
+    participant BE as Backend API
+    U->>FE: Clic Nuevo Ticket
+    FE->>FE: Muestra modal
+    U->>FE: Completa formulario y mensaje inicial
+    FE->>FE: Crea ticket y stage en memoria
+    Note over FE,BE: [POR HACER] POST /api/tickets + POST /api/tickets/stages
+    FE->>U: Actualiza tablero kanban
+    U->>FE: Clic en tarjeta
+    U->>FE: Escribe comentario y selecciona nuevo estado
+    FE->>FE: Registra nuevo TicketStage en memoria
+    Note over FE,BE: [POR HACER] POST /api/tickets/stages
+    FE->>U: Actualiza timeline y columna
+```
+
+### Flujo: Login
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario
+    participant FE as Frontend SPA
+    participant BE as Backend API
+    U->>FE: Ingresa userField y password
+    FE->>FE: Busca en datos mock INITIAL_DATA
+    Note over FE,BE: [POR HACER] POST /api/auth/login devuelve JWT
+    alt Credenciales correctas
+        FE->>U: Muestra tablero kanban
+    else Credenciales incorrectas
+        FE->>U: Mensaje de error
+    end
+```
+
+### Flujo: Transición de estado con historial auditado
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario
+    participant FE as Frontend SPA
+    U->>FE: Abre detalle del ticket
+    U->>FE: Escribe comentario obligatorio
+    U->>FE: Selecciona nuevo estado
+    alt Comentario vacío
+        FE->>U: Error mensaje obligatorio
+    else Comentario presente
+        FE->>FE: Actualiza currentState
+        FE->>FE: Agrega TicketStage con msg y actor
+        FE->>U: Actualiza timeline y estado
+    end
+```
+
+## 6. Estados y transiciones
+
+### Entidad: Ticket
+
+| Estado | Descripción | Transiciones esperadas |
+|--------|-------------|------------------------|
+| `OPEN` | Creado, trabajo no iniciado | → `IN_PROGRESS` |
+| `IN_PROGRESS` | En desarrollo activo | → `RESOLVED`, `CLOSED` |
+| `RESOLVED` | Terminado, pendiente revisión | → `CLOSED`, `IN_PROGRESS` (reapertura) |
+| `CLOSED` | Cerrado definitivamente | [INFERRED] punto final |
+
+Nota: [INFERRED] el modelo actual no valida transiciones — cualquier estado puede setearse. La restricción es solo convención.
+
+### Entidad: Project
+
+| Estado | Descripción |
+|--------|-------------|
+| `ACTIVE` | En curso activo |
+| `ON_HOLD` | Pausado temporalmente |
+| `ENDED` | Proyecto finalizado |
+| `ARCHIVED` | Archivado sin actividad |
+
+## 7. Out of scope
+
+- No gestiona notificaciones ni alertas (email, Slack, etc.).
+- No tiene integración con herramientas de versionado (GitHub, GitLab, etc.).
+- [INFERRED] No soporta sub-tareas dentro de un ticket.
+- No tiene gestión de sprints, iteraciones ni roadmaps.
+- No tiene panel de administración de usuarios (alta/baja vía UI).
+
+## 8. Glosario de dominio
+
+- **Ticket:** unidad de trabajo con topic, prioridad y estado actual.
+- **TicketStage:** registro histórico de un cambio de estado. Incluye mensaje, actor y fecha.
+- **Project:** proyecto que agrupa equipos y tickets.
+- **Team:** grupo de usuarios con especialización (DATA, DEVOPS, MANAGEMENT, DEVELOPMENT).
+- **PROJECT_MANAGER:** rol que puede crear proyectos.
+- **Kanban:** vista del tablero por columnas de TicketState.
+- **TBA-{n}:** identificador visible de un ticket (TBA + id numérico).
+
+## 9. Asunciones a validar
+
+- [ ] ASSUMPTION: El sistema es de uso interno, no expuesto a usuarios finales de clientes.
+- [ ] ASSUMPTION: El modelo de acceso "un usuario ve solo proyectos de su equipo" es el modelo definitivo.
+- [ ] ASSUMPTION: Las transiciones de estado no requieren validación estricta de flujo.
+- [ ] ASSUMPTION: Las credenciales (userField) son únicas por usuario.
+- [ ] ASSUMPTION: No hay límite de usuarios con rol PROJECT_MANAGER por equipo.
+</script>
+
+<script id="md-technical" type="text/markdown">
+# Spec Técnica — Toba
+
+> **Audiencia:** Desarrolladores que tienen que tocar este código.
+> **Generada:** 2026-05-04 via reverse-SDD
+> **Leyenda:** `[INFERRED]` deducido del código · `[ASSUMPTION]` asunción a validar · `[CONFIRMED]` confirmado por el usuario · `[POR HACER]` pendiente de implementación
+
+---
+
+## 1. Resumen técnico
+
+Toba es un sistema de gestión de tickets compuesto por una API REST en Spring Boot 4.0.5 (Java 17) con persistencia en MySQL 8, y un frontend SPA en HTML/CSS/JS vanilla servido por Nginx. El sistema se levanta íntegramente con Docker Compose. [CONFIRMED] La integración back-front no está implementada — el frontend opera con datos mock hardcodeados en memoria.
+
+## 2. Stack y versiones
+
+| Componente | Tecnología | Versión | Notas |
+|------------|------------|---------|-------|
+| Lenguaje (backend) | Java | 17 | |
+| Framework backend | Spring Boot | 4.0.5 | spring-boot-starter-webmvc |
+| ORM | Spring Data JPA / Hibernate | [INFERRED] 6.x | por Spring Boot 4 |
+| Base de datos | MySQL | 8 | |
+| Gestor de deps | Maven | [INFERRED] 3.x | pom.xml |
+| Utilidades backend | Lombok | 1.x | generación compile-time |
+| Validación | Jakarta Bean Validation | [INFERRED] 3.x | @NotBlank, @NotNull |
+| Frontend | HTML5 / CSS3 / JS ES6+ | — | Sin framework |
+| Web server frontend | Nginx | [INFERRED] latest | sirve static files |
+| Contenedores | Docker + Docker Compose | — | |
+
+## 3. Arquitectura
+
+### 3.1 Estilo arquitectónico
+
+Backend: arquitectura en capas clásica (Controller → Service → Repository → Entity). No hay capa de dominio separada; la lógica de negocio vive en los `ServiceImpl`. Frontend: SPA de fichero único sin framework, con estado global mutable en variables globales en `state.js` y datos mock en `data.js`.
+
+### 3.2 Estructura de carpetas
+
+```
+toba_project/
+├── Docker-Compose.yaml
+├── env.example
+└── app/
+    ├── tobaBack/
+    │   └── src/main/java/com/toba/toba/
+    │       ├── config/          CorsConfig (CORS + env)
+    │       ├── controller/      REST controllers (User, Team, Project, Ticket)
+    │       ├── dto/             Request/Response DTOs (Java records)
+    │       ├── entities/        JPA entities + enums/
+    │       ├── exception/       GlobalExceptionHandler
+    │       ├── mapper/          Mappers estáticos (entity a DTO)
+    │       ├── repository/      JpaRepository interfaces
+    │       └── service/         interfaces + impl/
+    └── tobaFront/
+        ├── index.html           entrypoint único del SPA
+        ├── css/                 variables, base, components
+        ├── js/
+        │   ├── data.js          INITIAL_DATA mock
+        │   ├── state.js         estado reactivo + helpers de dominio
+        │   └── app.js           handlers DOM + renderizado
+        ├── nginx.conf
+        └── Dockerfile
+```
+
+### 3.3 Diagrama de componentes
+
+```mermaid
+graph LR
+    Browser[Navegador] -->|HTTP 3000| FE[Frontend Nginx SPA]
+    FE -->|JS en memoria| MockData[INITIAL_DATA data.js]
+    FE -. "[POR HACER] fetch REST" .-> BE[Backend Spring Boot 8080]
+    BE --> DB[(MySQL 8)]
+```
+
+## 4. Modelo de datos
+
+### 4.1 Entidades principales
+
+#### User
+
+- **Propósito:** persona del sistema con un rol asignado.
+- **Atributos clave:** `id`, `name`, `surname`, `mail`, `role` (RoleEnum), `team_id`
+- **Relaciones:** ManyToOne a `Team`; OneToOne cascade a `Adress`; OneToOne cascade a `Credentials`
+
+#### Credentials
+
+- **Propósito:** almacenar credenciales de autenticación.
+- **Atributos clave:** `id`, `userField` (username), `password` **[POR HACER] texto plano — implementar BCrypt**, `lastLogin`
+- **Relaciones:** OneToOne desde `User`
+
+#### Adress (typo en código — debería ser Address)
+
+- **Propósito:** dirección física opcional del usuario.
+- **Atributos clave:** `street`, `zipCode`, `houseNumber`
+
+#### Team
+
+- **Propósito:** grupo de usuarios con una especialización.
+- **Atributos clave:** `id`, `name`, `teamType` (DATA, DEVOPS, MANAGEMENT, DEVELOPMENT)
+- **Relaciones:** OneToMany a `User`; OneToMany a `TeamProject`
+
+#### Project
+
+- **Propósito:** proyecto de trabajo que agrupa equipos y tickets.
+- **Atributos clave:** `id`, `name`, `description`, `startDate`, `status` (ACTIVE, ON_HOLD, ENDED, ARCHIVED)
+- **Relaciones:** OneToMany a `Ticket`; OneToMany a `TeamProject`
+
+#### TeamProject
+
+- **Propósito:** tabla de unión N:M entre `Team` y `Project`.
+- **Relaciones:** ManyToOne a `Team`; ManyToOne a `Project`
+
+#### Ticket
+
+- **Propósito:** unidad de trabajo trackeable dentro de un proyecto.
+- **Atributos clave:** `id`, `topic`, `priority` (TRIVIAL, LOW, MEDIUM, HIGH, CRITICAL, BLOCKER), `currentState` (OPEN, IN_PROGRESS, RESOLVED, CLOSED), `project_id`
+- **Relaciones:** ManyToOne a `Project`; OneToMany a `TicketStage`
+
+#### TicketStage
+
+- **Propósito:** registro histórico inmutable de un cambio de estado.
+- **Atributos clave:** `id`, `msg`, `createTime` (@CreationTimestamp), `state`, `ticket_id`, `user_id`
+- **Relaciones:** ManyToOne a `Ticket`; ManyToOne a `User`
+
+### 4.2 Esquema
+
+[INFERRED] Tablas principales: `app_user` (no `user` para evitar colisión MySQL), `credentials`, `adress`, `team`, `project`, `team_project`, `ticket`, `ticket_stage`. Esquema generado por Hibernate DDL auto.
+
+### 4.3 Migraciones
+
+[INFERRED] No hay Flyway ni Liquibase. El esquema se crea vía `spring.jpa.hibernate.ddl-auto`. **[POR HACER]** Agregar Flyway antes de usar con datos reales.
+
+## 5. Superficie de API
+
+### 5.1 Endpoints HTTP
+
+| Método | Ruta | Propósito | Auth |
+|--------|------|-----------|------|
+| `GET` | `/api/users` | Listar usuarios | Sin auth |
+| `GET` | `/api/users/{id}` | Obtener usuario | Sin auth |
+| `POST` | `/api/users` | Crear usuario | Sin auth |
+| `PUT` | `/api/users/{id}` | Actualizar usuario | Sin auth |
+| `DELETE` | `/api/users/{id}` | Eliminar usuario | Sin auth |
+| `GET` | `/api/teams` | Listar equipos | Sin auth |
+| `GET` | `/api/teams/{id}` | Obtener equipo | Sin auth |
+| `POST` | `/api/teams` | Crear equipo | Sin auth |
+| `PUT` | `/api/teams/{id}` | Actualizar equipo | Sin auth |
+| `DELETE` | `/api/teams/{id}` | Eliminar equipo | Sin auth |
+| `GET` | `/api/projects` | Listar proyectos | Sin auth |
+| `GET` | `/api/projects/{id}` | Obtener proyecto | Sin auth |
+| `POST` | `/api/projects` | Crear proyecto | Sin auth |
+| `PUT` | `/api/projects/{id}` | Actualizar proyecto | Sin auth |
+| `DELETE` | `/api/projects/{id}` | Eliminar proyecto | Sin auth |
+| `GET` | `/api/tickets` | Listar tickets | Sin auth |
+| `GET` | `/api/tickets/{id}` | Obtener ticket | Sin auth |
+| `POST` | `/api/tickets` | Crear ticket | Sin auth |
+| `PUT` | `/api/tickets/{id}` | Actualizar ticket | Sin auth |
+| `DELETE` | `/api/tickets/{id}` | Eliminar ticket | Sin auth |
+| `POST` | `/api/tickets/stages` | Agregar stage | Sin auth |
+| `GET` | `/api/tickets/stages/{id}` | Obtener stage | Sin auth |
+
+**[POR HACER]** Endpoint: `POST /api/auth/login` → devuelve JWT.
+
+### 5.2 Autenticación / Autorización
+
+**[POR HACER]** No hay Spring Security ni JWT. Todos los endpoints son públicos. CORS configurado en `CorsConfig.java` leyendo `ALLOWED_ORIGINS` desde env.
+
+Pendiente:
+- Spring Security + JWT filter chain.
+- Endpoint `POST /api/auth/login`.
+- Proteger endpoints con `@PreAuthorize`.
+- RBAC: validar `PROJECT_MANAGER` en el backend (hoy solo se verifica en el frontend JS).
+
+### 5.3 Contratos / DTOs
+
+DTOs implementados como Java records en `dto/`. Validación con `@NotBlank` y `@NotNull`. `GlobalExceptionHandler` cubre 404 y 400.
+
+**[POR HACER]** No se captura `MethodArgumentNotValidException` (errores de `@Valid`). Agregar handler para devolver respuesta estructurada cuando falla la validación de Bean Validation.
+
+## 6. Dependencias externas
+
+### 6.1 Servicios externos
+
+- **MySQL 8** — base de datos relacional principal.
+
+### 6.2 Librerías críticas
+
+- `spring-boot-starter-webmvc` — framework HTTP.
+- `spring-boot-starter-data-jpa` — ORM sobre Hibernate.
+- `spring-boot-starter-validation` — Bean Validation Jakarta.
+- `spring-boot-starter-session-jdbc` — [ASSUMPTION] preparación para sesiones server-side, sin uso activo confirmado.
+- `mysql-connector-j` — driver JDBC.
+- `lombok` — generación de código boilerplate.
+
+## 7. Configuración
+
+| Variable | Propósito | Ejemplo |
+|----------|-----------|---------|
+| `APP_PORT` | Puerto del backend | `8080` |
+| `DB_HOST` | Host de la BD | `db` en Docker |
+| `DB_USER` | Usuario MySQL | `toba` |
+| `DB_PASS` | Contraseña MySQL | — |
+| `DB_PORT` | Puerto MySQL | `3306` |
+| `ALLOWED_ORIGIN` | Origen permitido en CORS | `http://localhost:3000` |
+
+## 8. Decisiones técnicas y trade-offs
+
+### TD-01: Java records para DTOs
+
+- **Contexto:** estructuras de datos inmutables para request/response.
+- **Decisión:** Java records (Java 16+) en lugar de clases Lombok.
+- **Trade-off:** conciso e inmutable; más rígido para validaciones anidadas complejas.
+- **Status:** [INFERRED]
+
+### TD-02: Mappers estáticos sin MapStruct
+
+- **Contexto:** transformación entity a DTO.
+- **Decisión:** métodos estáticos manuales por entidad.
+- **Trade-off:** control total; más boilerplate a mantener cuando cambia el modelo.
+- **Status:** [INFERRED]
+
+### TD-03: Frontend vanilla sin framework
+
+- **Contexto:** construcción de la UI del kanban.
+- **Decisión:** HTML/CSS/JS puro sin React/Vue/Angular.
+- **Trade-off:** cero dependencias npm; difícil de escalar sin componentes ni data binding.
+- **Status:** [INFERRED]
+
+### TD-04: Estado en memoria (mock data) en frontend
+
+- **Contexto:** integración back-front no lista al momento del desarrollo de la UI.
+- **Decisión:** `INITIAL_DATA` hardcodeado en `data.js`.
+- **Trade-off:** permite desarrollar la UI sin backend; los datos no persisten al recargar.
+- **Status:** [CONFIRMED] — comentario explícito en `app.js`.
+
+### TD-05: Docker Compose como entorno de desarrollo
+
+- **Contexto:** levantar tres servicios coordinadamente.
+- **Decisión:** Docker Compose con healthcheck en MySQL.
+- **Trade-off:** simple para desarrollo local; no contempla producción ni escalado.
+- **Status:** [INFERRED]
+
+## 9. Deployment y runtime
+
+- **Cómo se buildea:** `mvn package` para backend; frontend sirve archivos estáticos.
+- **Cómo corre:** `docker compose up` (requiere `.env` basado en `env.example`).
+- **Dónde corre:** [ASSUMPTION] solo local/desarrollo.
+- **CI/CD:** No se detectó pipeline. **[POR HACER]** Configurar workflow básico (build + test).
+
+## 10. Observabilidad
+
+- **Logging:** Spring Boot default (SLF4J + Logback, plain text a stdout).
+- **Métricas:** No se detectó (sin Micrometer, sin Prometheus).
+- **Tracing:** No se detectó.
+- **Health checks:** Healthcheck de MySQL en Docker Compose. Sin `/actuator/health` en el backend.
+
+## 11. Testing
+
+- **Frameworks:** JUnit (via Spring Boot test starter).
+- **Tipos de test presentes:** Solo `TobaApplicationTests.java` (context load).
+- **Cobertura observable:** Prácticamente nula.
+- **Cómo correr:** `mvn test`
+
+**[POR HACER]** Agregar tests unitarios para `ServiceImpl` y tests de integración para controllers.
+
+## 12. Gaps técnicos detectados
+
+- **[POR HACER] Integración front-back:** el frontend no consume la API REST. Todo corre con datos mock. Comentario en `app.js`: "Sustituir lecturas de appState por fetch() a Spring Boot cuando corresponda."
+- **[POR HACER] Autenticación JWT:** no hay Spring Security ni endpoint de login. Todos los endpoints son públicos.
+- **[POR HACER] Hash de contraseñas:** `Credentials.password` se almacena en texto plano. Crítico — implementar BCrypt antes de cualquier uso con datos reales.
+- **[POR HACER] RBAC en el backend:** el rol `PROJECT_MANAGER` solo se verifica en el frontend JS. El backend no valida permisos por rol.
+- **[POR HACER] Handler de MethodArgumentNotValidException:** GlobalExceptionHandler no captura errores de `@Valid`. Devuelve 400 sin JSON estructurado.
+- **[POR HACER] Validación de formato email:** `UserRequestDto.mail` usa `@NotBlank` pero no `@Email`.
+- **[POR HACER] Sistema de migraciones:** sin Flyway ni Liquibase. Agregar antes de tener datos reales.
+- **[POR HACER] Tests:** cobertura prácticamente nula.
+- **Typo en entidad:** `Adress` debería ser `Address`. Se propaga a BD, DTOs y mappers.
+- **Typo en carpeta:** `dto/ticketDos/` debería ser `dto/ticketDtos/`.
+- **[INFERRED] spring-boot-starter-session-jdbc** posiblemente incluido sin uso activo.
+
+## 13. Asunciones a validar
+
+- [ ] ASSUMPTION: El entorno destino es solo local/staging. Sin configuración de producción detectada.
+- [ ] ASSUMPTION: `spring-boot-starter-session-jdbc` fue incluido como preparación para auth por sesión no implementada.
+- [ ] ASSUMPTION: El typo `Adress` es un error, no un nombre de dominio intencional.
+- [ ] ASSUMPTION: No hay CI/CD porque el proyecto está en etapa temprana.
+- [ ] ASSUMPTION: `spring.jpa.hibernate.ddl-auto` está en `create` o `update` para desarrollo.
+</script>
+
+<script>
+  marked.setOptions({ gfm: true, breaks: false });
+
+  function highlightMarkers(html) {
+    return html
+      .replace(/\[INFERRED\]/g, '<span class="marker marker-inferred">INFERRED</span>')
+      .replace(/\[ASSUMPTION\]/g, '<span class="marker marker-assumption">ASSUMPTION</span>')
+      .replace(/\[CONFIRMED\]/g, '<span class="marker marker-confirmed">CONFIRMED</span>')
+      .replace(/\[POR HACER\]/g, '<span class="marker marker-todo">POR HACER</span>');
+  }
+
+  function renderMarkdown(md) {
+    const mermaidBlocks = [];
+    md = md.replace(/```mermaid\n([\s\S]*?)```/g, (_, code) => {
+      const i = mermaidBlocks.length;
+      mermaidBlocks.push(code);
+      return `<div class="mermaid" data-mermaid-idx="${i}"></div>`;
+    });
+    let html = marked.parse(md);
+    html = highlightMarkers(html);
+    html = html.replace(/<div class="mermaid" data-mermaid-idx="(\d+)"><\/div>/g, (_, idx) => {
+      return `<div class="mermaid">${mermaidBlocks[parseInt(idx)]}</div>`;
+    });
+    return html;
+  }
+
+  function buildTOC(container) {
+    const items = [];
+    container.querySelectorAll('h2, h3').forEach((h, i) => {
+      const id = 'h-' + (h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60)) + '-' + i;
+      h.id = id;
+      items.push({ id, text: h.textContent.trim(), level: parseInt(h.tagName.slice(1)) });
+    });
+    return items;
+  }
+
+  function renderTOC(items) {
+    const toc = document.getElementById('toc');
+    toc.innerHTML = items.map(i =>
+      `<li><a href="#${i.id}" class="level-${i.level}" data-target="${i.id}">${i.text}</a></li>`
+    ).join('');
+    toc.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        document.getElementById(a.dataset.target).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  }
+
+  function countMarkers(html) {
+    return {
+      inferred: (html.match(/marker-inferred/g) || []).length,
+      assumption: (html.match(/marker-assumption/g) || []).length,
+      confirmed: (html.match(/marker-confirmed/g) || []).length,
+      todo: (html.match(/marker-todo/g) || []).length,
+    };
+  }
+
+  function renderToolbar(counts) {
+    const t = document.getElementById('toolbar');
+    t.innerHTML = `
+      <span class="chip">Inferred <strong>${counts.inferred}</strong></span>
+      <span class="chip">Assumption <strong>${counts.assumption}</strong></span>
+      <span class="chip">Confirmed <strong>${counts.confirmed}</strong></span>
+      <span class="chip">Por Hacer <strong style="color:var(--todo)">${counts.todo}</strong></span>
+    `;
+  }
+
+  const mdFunctional = document.getElementById('md-functional').textContent.trim();
+  const mdTechnical = document.getElementById('md-technical').textContent.trim();
+
+  const paneF = document.getElementById('pane-functional');
+  const paneT = document.getElementById('pane-technical');
+  paneF.innerHTML = renderMarkdown(mdFunctional);
+  paneT.innerHTML = renderMarkdown(mdTechnical);
+
+  const tocF = buildTOC(paneF);
+  const tocT = buildTOC(paneT);
+
+  function activatePane(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.pane === name));
+    document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
+    const items = name === 'functional' ? tocF : tocT;
+    renderTOC(items);
+    const html = (name === 'functional' ? paneF : paneT).innerHTML;
+    renderToolbar(countMarkers(html));
+    document.querySelector('.content').scrollTop = 0;
+  }
+
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => activatePane(t.dataset.pane));
+  });
+
+  activatePane('functional');
+
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      background: '#1c2030',
+      primaryColor: '#262a38',
+      primaryTextColor: '#e6e8ee',
+      lineColor: '#7c8cff'
+    }
+  });
+  mermaid.run();
+</script>
+
+</body>
+</html>

@@ -5,8 +5,7 @@ import java.util.List;
 
 import com.toba.toba.entities.enums.ProjectStatus;
 import jakarta.validation.constraints.NotBlank;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.aspectj.bridge.Message;
+import jakarta.validation.constraints.NotNull;
 
 public record ProjectRequestDto(
         @NotBlank(message = "El nombre no puede estar vacio")
@@ -14,6 +13,6 @@ public record ProjectRequestDto(
 		String description,
         List<Long> teamIds,
 		LocalDateTime startDate,
-        @NotBlank(message = "El status no puede estar vacio")
+        @NotNull(message = "El status no puede estar vacio")
 		ProjectStatus status) {
 }

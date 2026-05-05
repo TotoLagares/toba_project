@@ -60,18 +60,18 @@ public class UserServiceImpl implements UserService {
 		user.setRole(dto.role());
 		user.setTeam(team);
 
-		if (dto.adress() == null) {
-			user.setAdress(null);
-		} else if (user.getAdress() == null) {
-			user.setAdress(Adress.builder()
-					.street(dto.adress().street())
-					.zipCode(dto.adress().zipCode())
-					.houseNumber(dto.adress().houseNumber())
+		if (dto.address() == null) {
+			user.setAddress(null);
+		} else if (user.getAddress() == null) {
+			user.setAddress(Adress.builder()
+					.street(dto.address().street())
+					.zipCode(dto.address().zipCode())
+					.houseNumber(dto.address().houseNumber())
 					.build());
 		} else {
-			user.getAdress().setStreet(dto.adress().street());
-			user.getAdress().setZipCode(dto.adress().zipCode());
-			user.getAdress().setHouseNumber(dto.adress().houseNumber());
+			user.getAddress().setStreet(dto.address().street());
+			user.getAddress().setZipCode(dto.address().zipCode());
+			user.getAddress().setHouseNumber(dto.address().houseNumber());
 		}
 
 		if (dto.credentials() == null) {
